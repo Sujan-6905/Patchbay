@@ -42,20 +42,20 @@ function emitWithAck(event, data) {
 
 socket.on('message', (message) => {
     receivedMessage = JSON.parse(message);
-    if(receivedMessage.type === 'room details') {
+    if (receivedMessage.type === 'room details') {
         connectedUsers = receivedMessage.room;
         console.log(connectedUsers);
     }
-    else if(receivedMessage.type === 'new room id') {
+    else if (receivedMessage.type === 'new room id') {
         roomId = receivedMessage.newRoomId;
     }
-    else if(receivedMessage.type === 'sender offer') {
+    else if (receivedMessage.type === 'sender offer') {
         receivedOffer = receivedMessage.offer;
         console.log("received offer: ", receivedOffer);
     }
 });
 
-function getConstraints () {
+function getConstraints() {
     getAudioConstraints();
     return {
         video: getVideoConstraints(),
@@ -63,28 +63,28 @@ function getConstraints () {
     };
 }
 
-function getVideoConstraints () {
+function getVideoConstraints() {
     resolution = document.getElementById('resolution').value;
     frameRate = document.getElementById('framerate').value;
     videoBitrate = document.getElementById('video-bitrate').value;
 
-    if(resolution === '240p') {
+    if (resolution === '240p') {
         videoHeight = 240;
         videoWidth = 426;
     }
-    else if(resolution === '360p') {
+    else if (resolution === '360p') {
         videoHeight = 360;
         videoWidth = 640;
     }
-    else if(resolution === '480p') {
+    else if (resolution === '480p') {
         videoHeight = 480;
         videoWidth = 854;
     }
-    else if(resolution === '720p') {
+    else if (resolution === '720p') {
         videoHeight = 720;
         videoWidth = 1280;
     }
-    else if(resolution === '1080p') {
+    else if (resolution === '1080p') {
         videoHeight = 1080;
         videoWidth = 1920;
     }
@@ -100,11 +100,11 @@ function getVideoConstraints () {
     // videoBitrate and audioBitrate are set in a different way from the peerConnection
 }
 
-function getAudioConstraints () {
+function getAudioConstraints() {
     audioBitrate = document.getElementById('audio-bitrate').value;
 
     return {
-        channelCount: {ideal: 2},
+        channelCount: { ideal: 2 },
     }
 }
 
@@ -139,14 +139,14 @@ const createConnection = async () => {
 
         // setting the max video and audio bitrate. saw other params like network priority in it. might be useful.
         const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-        if(sender) {
+        if (sender) {
             const parameters = sender.getParameters();
             parameters.encodings[0].maxBitrate = videoBitrate * 1000;
             sender.setParameters(parameters);
         }
 
         const audioSender = peerConnection.getSenders().find(s => s.track.kind === 'audio');
-        if(audioSender) {
+        if (audioSender) {
             const audioParameters = audioSender.getParameters();
             audioParameters.encodings[0].maxBitrate = audioBitrate * 1000;
             audioSender.setParameters(audioParameters);
@@ -155,12 +155,12 @@ const createConnection = async () => {
         peerConnection.addEventListener('icecandidate', (event) => {
             if (event.candidate) {
                 console.log("ice candidate generated");
-                if(didIoffer === null) {
+                if (didIoffer === null) {
                     didIoffer = false;
-                    socket.emit('ice-candidate', {roomId: roomId, candidate: event.candidate, whoSent: 'receiver'});
+                    socket.emit('ice-candidate', { roomId: roomId, candidate: event.candidate, whoSent: 'receiver' });
                 }
                 else {
-                    socket.emit('ice-candidate', {roomId: roomId, candidate: event.candidate, whoSent: 'sender'});
+                    socket.emit('ice-candidate', { roomId: roomId, candidate: event.candidate, whoSent: 'sender' });
                 }
             }
         });
@@ -181,7 +181,7 @@ const createConnection = async () => {
 
 const makeCall = async () => {
     try {
-        if(callLive) {
+        if (callLive) {
             disconnect(); // just to make sure that the previous connections are closed
         }
         roomdetailsElement.innerText = "";
@@ -191,7 +191,7 @@ const makeCall = async () => {
         await fetchUserMedia();
 
         await createConnection();
-        
+
         myId = socket.id;
 
         const offer = await peerConnection.createOffer();
@@ -203,7 +203,7 @@ const makeCall = async () => {
         roomdetailsElement.innerText = "room id: " + roomId;
         callLive = true;
 
-        socket.emit('offer', {roomId: roomId, offer: offer});
+        socket.emit('offer', { roomId: roomId, offer: offer });
     }
     catch (error) {
         console.log("Error creating offer:", error);
@@ -212,20 +212,20 @@ const makeCall = async () => {
 
 const answerCall = async () => {
     try {
-        if(callLive) {
+        if (callLive) {
             disconnect(); // just to make sure that the previous connections are closed
         }
         roomId = document.getElementById('roomId').value;
 
-        if(!roomId) {
+        if (!roomId) {
             console.log("no room id has been entered");
             messageElement.innerText = "Please enter a valid room ID.";
             return;
         }
 
         await emitWithAck('get-room', roomId);
-        
-        if(!connectedUsers || connectedUsers.senderId == null) {
+
+        if (!connectedUsers || connectedUsers.senderId == null) {
             console.log("No members in the room. Please check if the room exists");
             messageElement.innerText = "No members in the room. Please check if the room exists.";
             return;
@@ -246,7 +246,7 @@ const answerCall = async () => {
 
         myId = socket.id;
 
-        await emitWithAck('add-receiver', {roomId: roomId, receiverId: myId});
+        await emitWithAck('add-receiver', { roomId: roomId, receiverId: myId });
         roomdetailsElement.innerText = "room id: " + roomId;
 
         await peerConnection.setRemoteDescription(receivedOffer);
@@ -254,7 +254,7 @@ const answerCall = async () => {
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
 
-        socket.emit('answer', {roomId: roomId, answer: answer});
+        socket.emit('answer', { roomId: roomId, answer: answer });
     }
     catch (error) {
         console.log("Error answering call:", error);
@@ -281,14 +281,14 @@ const addAnswer = async (answer) => {
     }
 }
 
-function toggleAudio () {
-    if(!callLive) {
+function toggleAudio() {
+    if (!callLive) {
         const audiomsgElement = document.getElementById('audio-msg');
         audiomsgElement.innerText = "Please start the call first.";
         return;
     }
 
-    if(sharingAudio) {
+    if (sharingAudio) {
         localStream.getAudioTracks().forEach(track => track.enabled = false);
         sharingAudio = false;
         const audiomsgElement = document.getElementById('audio-msg');
@@ -302,14 +302,14 @@ function toggleAudio () {
     }
 }
 
-function toggleVideo () {
-    if(!callLive) {
+function toggleVideo() {
+    if (!callLive) {
         const videomsgElement = document.getElementById('video-msg');
         videomsgElement.innerText = "Please start the call first.";
         return;
     }
 
-    if(sharingVideo) {
+    if (sharingVideo) {
         localStream.getVideoTracks().forEach(track => track.enabled = false);
         sharingVideo = false;
         const videomsgElement = document.getElementById('video-msg');
@@ -326,9 +326,9 @@ function toggleVideo () {
 const handleVideoBitrateChange = () => {
     videoBitrate = document.getElementById('video-bitrate').value;
 
-    if(peerConnection) {
+    if (peerConnection) {
         const sender = peerConnection.getSenders().find(s => s.track.kind === 'video');
-        if(sender) {
+        if (sender) {
             const parameters = sender.getParameters();
             parameters.encodings[0].maxBitrate = videoBitrate * 1000;
             sender.setParameters(parameters);
@@ -340,9 +340,9 @@ const handleVideoBitrateChange = () => {
 const handleAudioBitrateChange = () => {
     audioBitrate = document.getElementById('audio-bitrate').value;
 
-    if(peerConnection) {
+    if (peerConnection) {
         const sender = peerConnection.getSenders().find(s => s.track.kind === 'audio');
-        if(sender) {
+        if (sender) {
             const parameters = sender.getParameters();
             parameters.encodings[0].maxBitrate = audioBitrate * 1000;
             sender.setParameters(parameters);
@@ -361,9 +361,9 @@ const handleConstraintsChange = async () => {
     localVideo.srcObject = localStream;
 
     localStream.getTracks().forEach(track => {
-        if(peerConnection) {
+        if (peerConnection) {
             const sender = peerConnection.getSenders().find(s => s.track.kind === track.kind);
-            if(sender) {
+            if (sender) {
                 console.log('replacing track')
                 sender.replaceTrack(track);
             } else {
@@ -375,7 +375,7 @@ const handleConstraintsChange = async () => {
 }
 
 const startRecording = async () => {
-    if(!stream) {
+    if (!stream) {
         const recorderElement = document.getElementById('recorder-message');
         recorderElement.innerText = "Please start the call first.";
         return;
@@ -392,9 +392,9 @@ const startRecording = async () => {
         videoBitsPerSecond: recordingVideoBitrate * 1000,
         audioBitsPerSecond: recordingAudioBitrate * 1000
     });
-    
+
     mediaRecorder.ondataavailable = (event) => {
-        if(event.data.size > 0) {
+        if (event.data.size > 0) {
             recordedChunks.push(event.data);
         }
     };
@@ -415,12 +415,12 @@ const startRecording = async () => {
 }
 
 const stopRecording = async () => {
-    if(!isRecording) {
+    if (!isRecording) {
         const recorderElement = document.getElementById('recorder-message');
         recorderElement.innerText = "Recording is not in progress.";
         return;
     }
-    
+
     isRecording = false;
     mediaRecorder.stop();
     mediaRecorder = null;
@@ -450,10 +450,10 @@ const closeConnections = () => {
     roomdetailsElement.innerText = "";
     stream = null;
 
-    if(localStream) {
+    if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
     }
-    if(remoteStream) {
+    if (remoteStream) {
         remoteStream.getTracks().forEach(track => track.stop());
     }
 
@@ -463,7 +463,7 @@ const closeConnections = () => {
     remoteVideo.srcObject = null;
     roomdetailsElement.innerText = "";
 
-    if(isRecording) {
+    if (isRecording) {
         isRecording = false;
         mediaRecorder.stop();
         mediaRecorder = null;

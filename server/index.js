@@ -39,27 +39,27 @@ const Rooms = { // this is just sample data
 io.on('connect', (socket) => {
     console.log("new client connected " + socket.id);
 
-    socket.on('answer', ({roomId, answer}) => {
+    socket.on('answer', ({ roomId, answer }) => {
         const senderId = Rooms[roomId].senderId;
         io.to(senderId).emit('answer', answer);
         Rooms[roomId].receiverAnswer = answer;
     });
-    
-    socket.on('offer', ({roomId, offer}) => {
+
+    socket.on('offer', ({ roomId, offer }) => {
         Rooms[roomId].senderOffer = offer;
     });
-    
-    socket.on('ice-candidate', ({roomId, candidate, whoSent}) => {
-        if(whoSent === 'sender') {
+
+    socket.on('ice-candidate', ({ roomId, candidate, whoSent }) => {
+        if (whoSent === 'sender') {
             // if the ice candidate event occurs before the room is created
-            if(Rooms[roomId] === undefined) {
+            if (Rooms[roomId] === undefined) {
                 Rooms[roomId] = { senderIce: candidate };
             }
             else {
                 Rooms[roomId].senderICE = candidate;
             }
         }
-        else if(whoSent === 'receiver') {
+        else if (whoSent === 'receiver') {
             Rooms[roomId].receiverICE = candidate;
 
             io.to(Rooms[roomId].senderId).emit('ice-candidate', candidate);
@@ -68,13 +68,13 @@ io.on('connect', (socket) => {
     });
 
     socket.on('stop', (roomId) => {
-        if(roomId && Rooms[roomId] && Rooms[roomId].senderId) {
+        if (roomId && Rooms[roomId] && Rooms[roomId].senderId) {
             io.to(Rooms[roomId].senderId).emit('stop');
         }
-        if(roomId && Rooms[roomId] && Rooms[roomId].receiverId) {
+        if (roomId && Rooms[roomId] && Rooms[roomId].receiverId) {
             io.to(Rooms[roomId].receiverId).emit('stop');
         }
-        if(roomId && Rooms[roomId]) {
+        if (roomId && Rooms[roomId]) {
             delete Rooms[roomId];
         }
     });
@@ -86,7 +86,7 @@ io.on('connect', (socket) => {
         }
 
         socket.send(JSON.stringify(sendData));
-        callback({"status": "ok"});
+        callback({ "status": "ok" });
     })
 
     socket.on('get-sender-offer', (roomId, callback) => {
@@ -96,7 +96,7 @@ io.on('connect', (socket) => {
         }
 
         socket.send(JSON.stringify(sendData));
-        callback({"status": "ok"});
+        callback({ "status": "ok" });
     })
 
     socket.on('create-new-room', (senderId, callback) => {
@@ -107,19 +107,19 @@ io.on('connect', (socket) => {
         }
 
         // the ice candidate event may occur before the room is created
-        if(Rooms[newRoomId] !== undefined) {
+        if (Rooms[newRoomId] !== undefined) {
             Rooms[newRoomId].senderId = senderId;
         }
         else {
             Rooms[newRoomId] = { senderId: senderId };
         }
         socket.send(JSON.stringify(sendData));
-        callback({"status": "ok"})
+        callback({ "status": "ok" })
     })
 
-    socket.on('add-receiver', ({roomId, receiverId}, callback) => {
+    socket.on('add-receiver', ({ roomId, receiverId }, callback) => {
         Rooms[roomId].receiverId = receiverId;
-        callback({"status": "ok"});
+        callback({ "status": "ok" });
     })
 });
 
