@@ -27,6 +27,11 @@ export default defineConfig({
         // NotSupportedError there regardless of --use-fake-device-for-media-stream. The
         // full "chrome" channel does support it in headless mode.
         channel: 'chromium',
+        // getDisplayMedia() has no real screen to enumerate under Chromium's headless
+        // renderer, so --auto-select-desktop-capture-source silently has nothing to select
+        // and the screen-share tests hang until they time out. Headed mode needs a display
+        // to draw into, which is why CI runs this suite under xvfb-run (see ci.yml).
+        headless: false,
         launchOptions: {
           args: [
             '--use-fake-device-for-media-stream',

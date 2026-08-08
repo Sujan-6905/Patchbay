@@ -160,7 +160,7 @@ sequenceDiagram
     B->>S: signal { to: A, description: answer }
     S->>A: signal { from: B, description: answer }
 
-    Note over A,B: A's offer won; B's competing offer was silently discarded, no server involvement in resolving the collision
+    Note over A,B: A's offer won, B's competing offer was silently discarded, no server involvement in resolving the collision
 ```
 
 ## Mermaid diagram (peer-left)
@@ -208,5 +208,5 @@ sequenceDiagram
         S->>A: signal { from: B, candidate }
     end
 
-    Note over A,B: pc.onconnectionstatechange → "connected"; VideoTile's "reconnecting..." overlay clears
+    Note over A,B: pc.onconnectionstatechange → "connected", VideoTile's "reconnecting..." overlay clears
 ```

@@ -1,12 +1,14 @@
 import { ROOM_TTL_MINUTES_DEFAULT } from '@patchbay/shared';
 
 /** CORS_ORIGIN accepts one origin or a comma-separated list; a split frontend/backend
- * deployment needs both the production origin and every preview-deployment origin allowed. */
+ * deployment needs both the production origin and every preview-deployment origin allowed.
+ * Trailing slashes are stripped: the `Origin` header a browser sends is always bare
+ * scheme+host+port, so a copy-pasted "https://example.com/" would otherwise never match. */
 function parseCorsOrigin(): string | string[] {
   const raw = process.env.CORS_ORIGIN ?? 'http://localhost:5173';
   const origins = raw
     .split(',')
-    .map((origin) => origin.trim())
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
     .filter(Boolean);
   const [single] = origins;
   return origins.length === 1 && single ? single : origins;

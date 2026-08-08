@@ -19,7 +19,7 @@
     "test": "npm run test -w shared && npm run test -w server && npm run test -w client",
     "test:e2e": "npm run test:e2e -w e2e --if-present",
     "lint": "eslint .",
-    "typecheck": "npm run typecheck -w shared && npm run typecheck -w server && npm run typecheck -w client",
+    "typecheck": "npm run build -w shared && npm run typecheck -w server && npm run typecheck -w client",
     "format": "prettier --write ."
   },
   "devDependencies": {

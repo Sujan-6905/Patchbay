@@ -10,9 +10,9 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # The deployed frontend's origin (e.g. https://patchbay.vercel.app); required for the
-      # Vercel-hosted client to reach this service. Comma-separate a second origin to also
-      # allow Vercel preview deployments. See docs/DEPLOYMENT.md.
+      # The deployed frontend's origin (e.g. https://patchbay-app.vercel.app); required for
+      # the Vercel-hosted client to reach this service. Comma-separate a second origin to
+      # also allow Vercel preview deployments. See docs/DEPLOYMENT.md.
       - key: CORS_ORIGIN
         sync: false
       - key: ROOM_TTL_MINUTES

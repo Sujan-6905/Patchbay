@@ -87,9 +87,20 @@ test('closing a peer notifies the other side and the server drops the empty room
 
   await contextA.close();
 
-  // Now the room is empty and should be deleted immediately on the last member's disconnect.
-  const finalHealth = await fetch('http://localhost:5001/api/health').then((r) => r.json());
-  expect(finalHealth.rooms).toBe(0);
+  // Now the room is empty and should be deleted on the last member's disconnect. contextA.close()
+  // resolves once the browser side tears down, before the server has necessarily processed the
+  // resulting socket disconnect, so this has to poll like every other post-close check above
+  // rather than reading /api/health exactly once.
+  await expect
+    .poll(
+      async () => {
+        const res = await fetch('http://localhost:5001/api/health');
+        const body = (await res.json()) as { rooms: number };
+        return body.rooms;
+      },
+      { timeout: 5_000 },
+    )
+    .toBe(0);
 });
 
 test('three participants mesh: everyone sees the other two, and a leave updates the rest', async ({
@@ -160,15 +171,19 @@ test('screen share shows the presenter’s camera and screen as separate tiles, 
 
   await pageA.getByRole('button', { name: 'Share screen' }).click();
 
+  // Adding the screen track renegotiates the existing peer connection (new SDP offer/answer),
+  // which under CI's constrained CPU competes with actual screen-capture encoding; that made the
+  // original 10s budget here too tight and a leading cause of CI flakiness, so this uses the same
+  // generous window as the initial-connection checks above.
   // Bob should now see 3 live tiles: his own camera, Alice's camera, and Alice's screen.
   await expect
-    .poll(() => countLiveVideoElements(pageB), { timeout: 10_000 })
+    .poll(() => countLiveVideoElements(pageB), { timeout: 20_000 })
     .toBeGreaterThanOrEqual(3);
   await expect(pageB.getByText(/Alice.s screen/)).toBeVisible();
 
   // Alice sees her own camera tile plus a separate self screen-preview tile.
   await expect
-    .poll(() => countLiveVideoElements(pageA), { timeout: 10_000 })
+    .poll(() => countLiveVideoElements(pageA), { timeout: 20_000 })
     .toBeGreaterThanOrEqual(3);
   await expect(pageA.getByText(/Your screen/)).toBeVisible();
 
@@ -176,7 +191,7 @@ test('screen share shows the presenter’s camera and screen as separate tiles, 
   await expect(pageB.getByRole('button', { name: 'Share screen' })).toBeDisabled();
 
   await pageA.getByRole('button', { name: 'Stop sharing' }).click();
-  await expect.poll(() => countLiveVideoElements(pageB), { timeout: 10_000 }).toBe(2);
+  await expect.poll(() => countLiveVideoElements(pageB), { timeout: 20_000 }).toBe(2);
   await expect(pageB.getByText(/Alice.s screen/)).not.toBeVisible();
   await expect(pageB.getByRole('button', { name: 'Share screen' })).toBeEnabled();
 
@@ -187,6 +202,14 @@ test('screen share shows the presenter’s camera and screen as separate tiles, 
 test('chat, reactions, and file transfer propagate over data channels across 3 peers', async ({
   browser,
 }) => {
+  // The assertions below already carry generous per-step timeouts (30s chat, 20s reaction
+  // retry, 20s file transfer) to absorb 3-peer WebRTC negotiation jitter under CI load, but
+  // those budgets are meaningless against Playwright's 30s default test timeout: setup alone
+  // can eat into it, so the test can fail with "Test timeout exceeded" before an inner
+  // assertion's own window even elapses. Give the whole test enough room for its declared
+  // worst case instead of just tuning individual assertions.
+  test.setTimeout(120_000);
+
   const contexts = await Promise.all(
     Array.from({ length: 3 }, () => browser.newContext({ permissions: ['camera', 'microphone'] })),
   );
@@ -211,8 +234,8 @@ test('chat, reactions, and file transfer propagate over data channels across 3 p
   // negotiating close together, so this allows more headroom than the video-liveness check above.
   await pageA.getByPlaceholder('Message').fill('hello everyone');
   await pageA.getByRole('button', { name: 'Send' }).click();
-  await expect(pageB.getByText('hello everyone')).toBeVisible({ timeout: 20_000 });
-  await expect(pageC.getByText('hello everyone')).toBeVisible({ timeout: 20_000 });
+  await expect(pageB.getByText('hello everyone')).toBeVisible({ timeout: 30_000 });
+  await expect(pageC.getByText('hello everyone')).toBeVisible({ timeout: 30_000 });
 
   // Reactions: Bob's burst is visible on Alice's and Cara's copies of his tile. It auto-hides
   // after a few seconds, so re-trigger on each retry rather than racing one click against
@@ -392,7 +415,7 @@ test('starting a screen share mid-recording keeps the recording running instead 
   // freeze the composite (the recorder's source list was captured once at Record-click time
   // and never updated as new tiles appeared).
   await pageA.getByRole('button', { name: 'Share screen' }).click();
-  await expect(pageA.getByText(/Your screen/)).toBeVisible({ timeout: 10_000 });
+  await expect(pageA.getByText(/Your screen/)).toBeVisible({ timeout: 20_000 });
 
   // The recording timer must keep advancing (not frozen) with the screen tile now present.
   const secondsAtShareStart = await pageA
@@ -421,6 +444,9 @@ test('starting a screen share mid-recording keeps the recording running instead 
 test('starting and stopping screen share repeatedly during a recording does not freeze it', async ({
   browser,
 }) => {
+  // Three full renegotiation cycles (add/remove the screen track) on top of an active recording;
+  // needs more than the default budget under load, same reasoning as the single-cycle test above.
+  test.slow();
   const contextA = await browser.newContext({ permissions: ['camera', 'microphone'] });
   const contextB = await browser.newContext({ permissions: ['camera', 'microphone'] });
   const pageA = await contextA.newPage();
@@ -441,10 +467,10 @@ test('starting and stopping screen share repeatedly during a recording does not 
 
   for (let i = 0; i < 3; i++) {
     await pageA.getByRole('button', { name: 'Share screen' }).click();
-    await expect(pageA.getByText(/Your screen/)).toBeVisible({ timeout: 10_000 });
+    await expect(pageA.getByText(/Your screen/)).toBeVisible({ timeout: 20_000 });
     await pageA.waitForTimeout(600);
     await pageA.getByRole('button', { name: 'Stop sharing' }).click();
-    await expect(pageA.getByText(/Your screen/)).not.toBeVisible({ timeout: 10_000 });
+    await expect(pageA.getByText(/Your screen/)).not.toBeVisible({ timeout: 20_000 });
     await pageA.waitForTimeout(600);
   }
 

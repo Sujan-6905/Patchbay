@@ -9,9 +9,13 @@ account, no server relaying your media, no cost to run. TypeScript end to end.
 [![Client bundle](https://img.shields.io/badge/client%20bundle-249%20KB%20gzip-blue)](#tech-stack)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-**Live demo:** _deploying. Link will be added here once it's live. In the meantime,
-see [Getting started](#getting-started) to run it in under a minute, or
-[Deployment](#deployment) to put your own copy online for free._
+**Live demo: [patchbay-app.vercel.app](https://patchbay-app.vercel.app)**, the frontend on
+Vercel, talking to the signaling/API server at
+[patchbay.onrender.com](https://patchbay.onrender.com) (documented here for transparency,
+not meant to be visited directly). Render's free tier sleeps after idle time, so the API can
+take a few seconds to wake on the first request; the app shows a status pill while it does.
+See [Getting started](#getting-started) to run it locally instead, or
+[Deployment](#deployment) to put your own copy online for free.
 
 ## Why "Patchbay"
 
@@ -149,7 +153,9 @@ The recommended setup splits hosting in two: the static frontend on **Vercel**
 ([`vercel.json`](./vercel.json)) and the signaling/API server on **Render**
 ([`render.yaml`](./render.yaml), a ready-to-use Blueprint). Only the backend is a stateful
 Node process, so only it pays Render's free-tier cold-start cost; the frontend loads
-instantly from Vercel's edge network regardless.
+instantly from Vercel's edge network regardless. This repo's own deployment follows exactly
+this path: [patchbay-app.vercel.app](https://patchbay-app.vercel.app) (frontend) and
+[patchbay.onrender.com](https://patchbay.onrender.com) (API).
 
 1. Push this repo to your own GitHub account.
 2. Deploy the backend first: in the [Render dashboard](https://dashboard.render.com),

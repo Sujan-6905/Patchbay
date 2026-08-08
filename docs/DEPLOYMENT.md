@@ -27,7 +27,9 @@ This is what `vercel.json` and `render.yaml` in this repo target together. Split
 means the frontend is served instantly from Vercel's edge network, and only the parts that
 actually need a stateful server (signaling, TURN config, AI summaries) pay Render's free-tier
 cold-start cost; see [Cold starts](#cold-starts-and-how-the-frontend-hides-them) below for how
-the client hides that cost from visitors.
+the client hides that cost from visitors. This repo's own deployment runs exactly this path:
+[patchbay-app.vercel.app](https://patchbay-app.vercel.app) (frontend) and
+[patchbay.onrender.com](https://patchbay.onrender.com) (API).
 
 1. Push this repo to GitHub (if you haven't already).
 2. **Deploy the backend on Render first**, so you have its URL before configuring the frontend.

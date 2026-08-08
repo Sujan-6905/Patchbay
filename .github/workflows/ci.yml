@@ -29,8 +29,12 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run build -w shared
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      # Screen-share tests drive a real getDisplayMedia() capture, which needs an actual
+      # display to draw into (headless Chromium has none); xvfb-run provides a virtual one,
+      # matching e2e/playwright.config.ts running this project in headed mode.
+      - run: xvfb-run -a npm run test:e2e
         env:
           CI: true
 
