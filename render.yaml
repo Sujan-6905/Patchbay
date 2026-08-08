@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: patchbay
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # The deployed frontend's origin (e.g. https://patchbay.vercel.app); required for the
+      # Vercel-hosted client to reach this service. Comma-separate a second origin to also
+      # allow Vercel preview deployments. See docs/DEPLOYMENT.md.
+      - key: CORS_ORIGIN
+        sync: false
+      - key: ROOM_TTL_MINUTES
+        value: '30'
+      # Open Relay Project free TURN credentials (see docs/DEPLOYMENT.md); required for
+      # callers behind symmetric NAT; leave unset to fall back to STUN-only.
+      - key: TURN_URLS
+        sync: false
+      - key: TURN_USERNAME
+        sync: false
+      - key: TURN_CREDENTIAL
+        sync: false
+      # Server-held Groq key powering the built-in AI meeting summaries (free for users).
+      # Create one at https://console.groq.com/keys; leave unset to disable summaries.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: AI_RATE_LIMIT_WINDOW_MS
+        value: '60000'
+      - key: AI_RATE_LIMIT_MAX
+        value: '5'
+      - key: ROOM_CREATE_RATE_LIMIT_WINDOW_MS
+        value: '60000'
+      - key: ROOM_CREATE_RATE_LIMIT_MAX
+        value: '10'
+      - key: SOCKET_MAX_PAYLOAD_BYTES
+        value: '131072'

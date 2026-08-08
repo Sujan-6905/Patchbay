@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - '5001:5001'
+    environment:
+      PORT: 5001
+      NODE_ENV: production
+      # Client and API are served from the same origin in this single-container setup.
+      CORS_ORIGIN: http://localhost:5001
+      ROOM_TTL_MINUTES: 30
+      # Uncomment and fill in for NAT traversal behind symmetric NAT (see README/docs/DEPLOYMENT.md):
+      # TURN_URLS: turn:relay.example.com:80,turn:relay.example.com:443
+      # TURN_USERNAME:
+      # TURN_CREDENTIAL:
+      # Uncomment to enable free AI meeting summaries (https://console.groq.com/keys):
+      # GROQ_API_KEY:
+    restart: unless-stopped
