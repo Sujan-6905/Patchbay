@@ -83,7 +83,7 @@ export function ChatPanel({
   }
 
   return (
-    <div className="flex h-full w-80 flex-col rounded-lg border border-neutral-700 bg-neutral-800 text-white">
+    <div className="flex h-full w-full flex-col rounded-lg border border-neutral-700 bg-neutral-800 text-white sm:w-80">
       <div className="flex items-center justify-between border-b border-neutral-700 p-3">
         <h2 className="text-sm font-semibold">Chat</h2>
         <button

@@ -44,7 +44,7 @@ function CandidateBadge({ candidateType }: { candidateType: string | null }) {
 
 export function StatsPanel({ peers, stats, onClose }: StatsPanelProps) {
   return (
-    <div className="flex h-full w-96 flex-col rounded-lg border border-neutral-700 bg-neutral-800 text-white">
+    <div className="flex h-full w-full flex-col rounded-lg border border-neutral-700 bg-neutral-800 text-white sm:w-96">
       <div className="flex items-center justify-between border-b border-neutral-700 p-3">
         <h2 className="text-sm font-semibold">Connection stats</h2>
         <button

@@ -186,6 +186,9 @@ export function Room() {
   const peerList = Object.values(peers);
   const someoneElseSharing = peerList.some((peer) => peer.sharingScreen);
   const peerIds = peerList.map((peer) => peer.peerId);
+  // Chrome and Firefox on Android (and most other mobile browsers) never implemented the
+  // Screen Capture API, so getDisplayMedia is simply absent there rather than throwing.
+  const screenShareSupported = typeof navigator.mediaDevices?.getDisplayMedia === 'function';
   const connectionStats = useConnectionStats(peerManagerRef, peerIds, statsOpen);
 
   function triggerReaction(key: string, emoji: string) {
@@ -887,7 +890,7 @@ export function Room() {
   }
 
   return (
-    <div className="relative flex h-screen flex-col gap-4 overflow-hidden p-4 text-white">
+    <div className="relative flex h-dvh flex-col gap-4 overflow-hidden p-4 text-white">
       {recording && (
         <div className="absolute left-1/2 top-2 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
           <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
@@ -923,7 +926,7 @@ export function Room() {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="flex flex-1 gap-4 overflow-hidden">
+      <div className="relative flex flex-1 gap-4 overflow-hidden">
         {/* gridAutoRows: min-content is load-bearing: without it, a height-constrained
             container makes the grid compress its auto rows below the tiles' aspect-video
             height, and the fixed-aspect tiles then overflow their rows and visually overlap
@@ -982,7 +985,7 @@ export function Room() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 24 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="h-full"
+              className="absolute inset-0 z-20 sm:static sm:inset-auto sm:z-auto sm:h-full"
             >
               <ChatPanel
                 messages={messages}
@@ -1005,7 +1008,7 @@ export function Room() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 24 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="h-full"
+              className="absolute inset-0 z-20 sm:static sm:inset-auto sm:z-auto sm:h-full"
             >
               <StatsPanel
                 peers={peerList.map((peer) => ({
@@ -1050,6 +1053,7 @@ export function Room() {
           camEnabled={camEnabled}
           sharingScreen={sharingScreen}
           shareDisabled={someoneElseSharing}
+          shareSupported={screenShareSupported}
           chatOpen={chatOpen}
           unreadCount={unreadCount}
           reactionPickerOpen={reactionPickerOpen}

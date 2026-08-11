@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { isAndroid } from '../lib/platform';
 
 interface SpeechRecognitionResultLike {
   isFinal: boolean;
@@ -24,6 +25,9 @@ interface SpeechRecognitionLike extends EventTarget {
 type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
 
 function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
+  // On Android, recognition.start() can't get the mic while the call's getUserMedia capture
+  // holds it, so it fails and retries forever, which is what repeats Chrome's "mic in use" toast.
+  if (isAndroid()) return null;
   const w = window as unknown as {
     SpeechRecognition?: SpeechRecognitionCtor;
     webkitSpeechRecognition?: SpeechRecognitionCtor;
@@ -32,10 +36,10 @@ function getSpeechRecognitionCtor(): SpeechRecognitionCtor | null {
 }
 
 /** Wraps the Web Speech API for live captions. `isSupported` reflects whether this browser
- * exposes SpeechRecognition at all (only Chrome/Edge/Safari do; feature-detected once, not
- * per render). Chrome auto-stops recognition after a period of silence, so this restarts it
- * in `onend` for as long as `enabled` stays true; the mic is already held by the call, so
- * restarting never re-prompts for permission. */
+ * exposes SpeechRecognition at all (only Chrome/Edge/Safari do, and not on Android; feature-
+ * detected once, not per render). Chrome auto-stops recognition after a period of silence, so
+ * this restarts it in `onend` for as long as `enabled` stays true; the mic is already held by
+ * the call, so restarting never re-prompts for permission. */
 export function useCaptions(
   enabled: boolean,
   onResult: (text: string, isFinal: boolean) => void,

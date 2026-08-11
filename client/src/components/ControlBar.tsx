@@ -31,6 +31,7 @@ interface ControlBarProps {
   sharingScreen: boolean;
   /** True when another participant is already presenting; only one screen share is allowed at a time. */
   shareDisabled?: boolean;
+  shareSupported: boolean;
   chatOpen: boolean;
   unreadCount: number;
   reactionPickerOpen: boolean;
@@ -106,6 +107,7 @@ export function ControlBar({
   camEnabled,
   sharingScreen,
   shareDisabled = false,
+  shareSupported,
   chatOpen,
   unreadCount,
   reactionPickerOpen,
@@ -155,8 +157,14 @@ export function ControlBar({
         icon={sharingScreen ? MonitorX : MonitorUp}
         label={sharingScreen ? 'Stop sharing' : 'Share screen'}
         active={sharingScreen}
-        disabled={shareDisabled}
-        title={shareDisabled ? 'Someone else is already sharing their screen' : undefined}
+        disabled={!shareSupported || shareDisabled}
+        title={
+          !shareSupported
+            ? 'Screen sharing is not supported in this browser'
+            : shareDisabled
+              ? 'Someone else is already sharing their screen'
+              : undefined
+        }
         onClick={onToggleShareScreen}
       />
       <ControlButton
